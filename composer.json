@@ -2,11 +2,11 @@
     "name": "xinc/server",
     "type": "xinc-application-package",
     "description": "Xinc Server Deamon with the Sunrise build engine.",
-    "homepage": "http://code.google.com/p/xinc/",
+    "homepage": "https://github.com/Xinc-org/Xinc.Server",
     "license": "LGPL-3.0+",
-    "version": "2.3.90",
+    "version": "2.90.0",
     "require": {
-        "php": ">=5.4.4",
+        "php": ">=5.5.0",
         "xinc/core": "*",
         "shaneharter/php-daemon": "dev-master"
     },
