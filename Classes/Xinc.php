@@ -34,7 +34,7 @@ namespace Xinc\Server;
 
 class Xinc
 {
-    const VERSION = '2.3.90';
+    const VERSION = '2.90.90';
 
     const DEFAULT_PROJECT_DIR = 'projects';
     const DEFAULT_STATUS_DIR = 'status';
