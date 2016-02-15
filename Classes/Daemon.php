@@ -71,7 +71,7 @@ class Daemon extends \Core_Daemon
             if ($name !== $engine->getName()) {
                 continue;
             }
-            $this->worker('Sunrise', $engine);
+            $this->worker($name, $engine);
             $this->$name->workers(1);
             $this->$name->timeout(0);
             // $this->$name->setup();

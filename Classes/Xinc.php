@@ -36,8 +36,8 @@ class Xinc
 {
     const VERSION = '2.90.90';
 
-    const DEFAULT_PROJECT_DIR = 'projects';
-    const DEFAULT_STATUS_DIR = 'status';
+    const DEFAULT_PROJECT_DIR = 'Projects';
+    const DEFAULT_STATUS_DIR = 'Status';
 
     /**
      * Current working directory
@@ -73,7 +73,10 @@ class Xinc
      */
     protected function parseCliOptions()
     {
-        $workingDir = dirname($_SERVER['argv'][0]);
+        $workingDir = getcwd() . '/Configuration';
+        if (!is_dir($workingDir)) {
+            $workingDir = dirname($_SERVER['argv'][0]) . '/Configuration';
+        }
 
         $opts = getopt(
             'r:w:s:f:l:v:o',
@@ -286,7 +289,8 @@ class Xinc
      */
     protected function initPlugins()
     {
-        \Xinc\Core\Plugin\Repository::getInstance()->loadPluginConfig();
+        \Xinc\Core\Logger::getInstance()->info('Load Plugin Config');
+        \Xinc\Core\Plugin\Repository::getInstance()->loadPluginConfig($this->options['working-dir']);
     }
 
     /**
