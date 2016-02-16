@@ -130,9 +130,7 @@ class Parser
     public function parseProject($project)
     {
         try {
-            $taskRegistry = \Xinc\Core\Task\Registry::getInstance();
-            $this->parseTasks(null, $project->getConfig(), $taskRegistry);
-            $project->setTaskRegistry($taskRegistry);
+            $this->parseTasks($project, $project->getConfig());
         } catch (\Exception $e) {
             \Xinc\Core\Logger::getInstance()->error($e->getMessage());
             $project->setStatus(\Xinc\Core\Project\Status::MISCONFIGURED);
@@ -142,33 +140,31 @@ class Parser
     /**
      * Parses the tasks/subtasks of a project-xml
      *
+     * @param Xinc\Core\Models\Project $project
      * @param SimpleXmlElement $element
-     * @param Xinc $project
      */
-    private function parseTasks($build, $element, $taskRegistry)
+    private function parseTasks($project, $element)
     {
         foreach ($element as $taskName => $task) {
-            $taskObject = \Xinc\Core\Task\Registry::getInstance()->get($taskName);
+            $taskObject = clone \Xinc\Core\Task\Registry::getInstance()->get($taskName);
             $taskObject->init(null);
             $taskObject->setXml($task);
             foreach ($task->attributes() as $name => $value) {
                 $method = 'set' . ucfirst(strtolower($name));
                 if (method_exists($taskObject, $method)) {
-                    $taskObject->$method((string)$value, $build);
+                    $taskObject->$method((string)$value, $project);
                 } else {
-                    \Xinc\Core\Logger::getInstance()->error(
-                        'Trying to set "' . $name .'" on task "' . $taskName . '" failed. No such setter.'
-                    );
+                    throw new \Exception('Trying to set "' . $name .'" on task "' . $taskName . '" failed. No such setter.');
                 }
             }
 
-            $this->parseTasks($build, $task, $taskObject);
+            $this->parseTasks($project, $task);
 
             if (!$taskObject->validate()) {
-                \Xinc\Core\Logger::getInstance()->error('Error validating config.xml for task: ' . $taskObject->getName());
-                $project->setStatus(Xinc_Project_Status::MISCONFIGURED);
-                return;
+                throw new \Exception('Error validating config.xml for task: ' . $taskObject->getName());
             }
+
+            $project->addProcess($taskObject->getPluginSlot(), $taskObject);
         }
     }
 }
