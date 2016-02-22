@@ -88,14 +88,6 @@ class Daemon extends \Core_Daemon
     protected function setup()
     {
         $this->on(\Core_Daemon::ON_SHUTDOWN, array($this, 'godown'));
-
-        $engines = Engine\Repository::getInstance()->getEngines();
-        foreach ($engines as $name => $engine) {
-            if ($name !== $engine->getName()) {
-                continue;
-            }
-            $this->$name->doWork();
-        }
     }
 
     /**
@@ -106,6 +98,16 @@ class Daemon extends \Core_Daemon
      */
     protected function execute()
     {
+        \Xinc\Core\Logger::getInstance()->info('Execute');
+        $engines = Engine\Repository::getInstance()->getEngines();
+        foreach ($engines as $name => $engine) {
+            if ($name !== $engine->getName()) {
+                continue;
+            }
+            if ($this->$name->is_idle()) {
+                $this->$name->doWork();
+            }
+        }
     }
 
     /**
@@ -251,11 +253,13 @@ class Daemon extends \Core_Daemon
 
             foreach ($group->getProjects() as $project) {
                 $engine = Engine\Repository::getInstance()->getEngine($project->getEngineName());
-                $engine->addProject($project);
+                $name = $engine->getName();
+                \Xinc\Core\Logger::getInstance()->info('Add project to engine: ' . $name);
+                $this->$name->addProject($project);
             }
         } catch (\Xinc\Core\Project\Config\Exception\FileNotFoundException $notFound) {
             \Xinc\Core\Logger::getInstance()->error('Project Config File ' . $fileName . ' cannot be found');
-        } catch (Xinc_Engine_Exception_NotFound $engineNotFound) {
+        } catch (\Xinc\Server\Engine\Exception\NotFoundException $engineNotFound) {
             \Xinc\Core\Logger::getInstance()->error(
                 'Project Config File references an unknown Engine: ' . $engineNotFound->getMessage()
             );
