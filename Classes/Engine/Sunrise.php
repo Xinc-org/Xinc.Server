@@ -83,11 +83,8 @@ class Sunrise implements EngineInterface
      */
     public function doWork()
     {
-        $this->mediator->log('Sunrise is working');
-        while (!\Core_Daemon::is('shutdown')) {
-            $this->checkSensors();
-            usleep(1000);
-        }
+        $this->mediator->log('Sunrise doWork');
+        $this->checkSensors();
     }
 
     /**
@@ -109,9 +106,29 @@ class Sunrise implements EngineInterface
      */
     public function addProject(\Xinc\Core\Models\Project $project)
     {
-        $this->mediator->log('Add project ' . $project->getName());
+        $this->mediator->log('Add project: ' . $project->getName());
         $this->projects[] = $project;
         $this->parseProject($project);
+    }
+
+    /**
+     * Check if a sensor of a project was hit.
+     */
+    protected function checkSensors()
+    {
+        foreach ($this->projects as $project) {
+            $this->checkSensor($project);
+        }
+    }
+
+    protected function checkSensor(\Xinc\Core\Models\Project $project)
+    {
+        if ($project->getStatus() === \Xinc\Core\Project\Status::ENABLED) {
+            foreach ($project->getProcessBySlot(\Xinc\Core\Task\Slot::INIT_PROCESS) as $process) {
+                $nextRunTime = $process->getNextProjectRunTime($project);
+                $this->mediator->log('Next ' . $nextRunTime);
+            }
+        }
     }
 
     private function handleBuildConfig(Xinc_Build_Interface $build)
